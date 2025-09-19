@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}Тарифы и лицензии - PixFly{% endblock %}
+{% block title %}Тарифы и лицензии - PixFy{% endblock %}
 
 {% block content %}
 <section class="bg-light py-5">
     <div class="container text-center">
         <h1 class="display-6 fw-bold mb-3">Гибкие тарифы для вашего бизнеса</h1>
-        <p class="lead text-muted mb-4">Выбирайте подходящий план и лицензии, чтобы безопасно использовать контент PixFly в своих проектах.</p>
+        <p class="lead text-muted mb-4">Выбирайте подходящий план и лицензии, чтобы безопасно использовать контент PixFy в своих проектах.</p>
         <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">Создать аккаунт клиента</a>
     </div>
 </section>
@@ -36,7 +36,7 @@
 
 <section class="bg-white py-5">
     <div class="container">
-        <h2 class="h4 mb-4">Лицензии PixFly</h2>
+        <h2 class="h4 mb-4">Лицензии PixFy</h2>
         <div class="row g-4">
             {% for license in licenses %}
                 <div class="col-lg-4 col-md-6">
@@ -71,7 +71,7 @@
     <div class="row align-items-center bg-light rounded-3 p-4">
         <div class="col-md-8">
             <h3 class="h5 mb-2">Хотите продавать фотографии?</h3>
-            <p class="text-muted mb-0">Откройте аккаунт автора, загружайте работы и зарабатывайте на лицензиях PixFly.</p>
+            <p class="text-muted mb-0">Откройте аккаунт автора, загружайте работы и зарабатывайте на лицензиях PixFy.</p>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
             <a href="{% url 'gallery:upload' %}" class="btn btn-outline-secondary">Вход для авторов</a>

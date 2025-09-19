@@ -10,8 +10,8 @@ WorkingDirectory=/root/pixfy
 Environment="DJANGO_SETTINGS_MODULE=photobank.settings_production"
 Environment="DJANGO_SECRET_KEY=z_jgsa)#=_rzp^u@d%f#6j&od5olwry5n=(xe2%@e67i)f6uzu"
 Environment="DJANGO_DEBUG=False"
-Environment="DJANGO_ALLOWED_HOSTS=pixfy.ru,www.pixfy.ru"
-ExecStart=/root/pixfy/venv/bin/gunicorn --config /root/pixfy/gunicorn_config.py
+Environment="DJANGO_ALLOWED_HOSTS=pixfy.ru,www.pixfy.ru,localhost,127.0.0.1,185.185.143.111"
+ExecStart=/root/pixfy/venv/bin/gunicorn --config /root/pixfy/gunicorn_config.py photobank.wsgi:application
 ExecReload=/bin/kill -s HUP $MAINPID
 Restart=always
 RestartSec=5

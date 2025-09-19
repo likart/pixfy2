@@ -28,9 +28,10 @@ proc_name = 'pixfy_gunicorn'
 # Server mechanics  
 daemon = False
 pidfile = "/root/pixfy/gunicorn.pid"
-user = "root"
-group = "root"
+user = "www-data"
+group = "www-data"
 tmp_upload_dir = None
 
 # Application  
 chdir = "/root/pixfy"
+wsgi_module = "photobank.wsgi:application"

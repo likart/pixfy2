@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ photo.title }} - PixFly{% endblock %}
+{% block title %}{{ photo.title }} - PixFy{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -139,7 +139,7 @@
                 <div class="photo-preview-card">
                     <img src="{% if photo.thumbnail %}{{ photo.thumbnail.url }}{% else %}{{ photo.image.url }}{% endif %}" alt="{{ photo.title }}" class="js-protected-image" draggable="false" oncontextmenu="return false;" onclick="showFullImage('{{ photo.image.url }}')" style="cursor: pointer;" title="Нажмите для просмотра в полном размере">
                     <div class="photo-guard" aria-hidden="true"></div>
-                    <div class="watermark" aria-hidden="true">PixFly</div>
+                    <div class="watermark" aria-hidden="true">PixFy</div>
                 </div>
 
                 <div class="mt-4 card shadow-sm border-0">
@@ -199,7 +199,7 @@
                                 {% endif %}
                                 <div>
                                     <div class="fw-semibold">{{ photo.author.username }}</div>
-                                    <small class="text-muted">{{ photo.author.profile.total_photos }} работ в PixFly</small>
+                                    <small class="text-muted">{{ photo.author.profile.total_photos }} работ в PixFy</small>
                                 </div>
                                 <div class="ms-auto">
                                     <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:public_profile' photo.author.username %}">Профиль автора</a>
@@ -260,7 +260,7 @@
                                 <a href="{% url 'store:licenses' %}" class="d-block text-center small mt-3">Сравнить условия лицензий</a>
                             </form>
                         {% else %}
-                            <h5 class="mb-3">Вы автор PixFly</h5>
+                            <h5 class="mb-3">Вы автор PixFy</h5>
                             <p class="text-muted">Управляйте продажами и загружайте новые работы в кабинете автора.</p>
                             <a href="{% url 'gallery:user_photos' %}" class="btn btn-outline-primary w-100">Мои фотографии</a>
                         {% endif %}

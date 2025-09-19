@@ -240,7 +240,7 @@ def upload_to_temp(request):
 
         # Проверяем права пользователя
         if not getattr(getattr(request.user, 'profile', None), 'is_contributor', False):
-            return JsonResponse({'error': 'Загрузка доступна только авторам PixFly.'}, status=403)
+            return JsonResponse({'error': 'Загрузка доступна только авторам PixFy.'}, status=403)
 
         if 'file' not in request.FILES:
             return JsonResponse({'error': 'Файл не выбран'}, status=400)
@@ -309,7 +309,7 @@ def handle_photo_upload(request):
             return JsonResponse({'error': 'Необходимо войти в систему'}, status=401)
 
         if not getattr(getattr(request.user, 'profile', None), 'is_contributor', False):
-            return JsonResponse({'error': 'Загрузка доступна только авторам PixFly.'}, status=403)
+            return JsonResponse({'error': 'Загрузка доступна только авторам PixFy.'}, status=403)
 
         if 'file' not in request.FILES:
             return JsonResponse({'error': 'Файл не выбран'}, status=400)

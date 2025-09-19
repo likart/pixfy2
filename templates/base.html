@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}PixFly - Фотобанк{% endblock %}</title>
+    <title>{% block title %}PixFy - Фотобанк{% endblock %}</title>
     
     <!-- Google Fonts - Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -479,7 +479,7 @@
 
             <!-- Center Logo -->
             <div class="navbar-brand-container">
-                <a class="navbar-brand mx-auto" href="{% url 'gallery:home' %}">PixFly</a>
+                <a class="navbar-brand mx-auto" href="{% url 'gallery:home' %}">PixFy</a>
             </div>
 
             <!-- Right side -->
@@ -678,7 +678,7 @@
             </div>
             <hr class="my-4">
             <div class="text-center">
-                <p>&copy; 2025 PixFly. Все права защищены.</p>
+                <p>&copy; 2025 PixFy. Все права защищены.</p>
                 <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 mt-3">
                     <a href="{% url 'accounts:register' %}?author=1" class="btn btn-primary btn-sm">Стать автором</a>
                     <a href="{% url 'accounts:login' %}?next={% url 'gallery:upload' %}" class="btn btn-outline-light btn-sm">Вход для авторов</a>
