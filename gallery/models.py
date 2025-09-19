@@ -108,21 +108,14 @@ class Photo(models.Model):
                 max_side = 960
                 img.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)
                 
-                # Сохраняем превью
+                # Сохраняем превью (путь формируется автоматически через upload_to)
                 thumb_name = os.path.basename(self.image.name)
                 thumb_name = os.path.splitext(thumb_name)[0] + '_thumb.jpg'
-                timestamp = timezone.now()
-                thumb_path = os.path.join(
-                    'thumbnails',
-                    str(timestamp.year),
-                    f"{timestamp.month:02d}",
-                    thumb_name,
-                )
 
                 buffer = BytesIO()
                 img.save(buffer, 'JPEG', quality=70, optimize=True, subsampling=1)
                 buffer.seek(0)
-                self.thumbnail.save(thumb_path, ContentFile(buffer.read()), save=False)
+                self.thumbnail.save(thumb_name, ContentFile(buffer.read()), save=False)
         except Exception:
             logger.exception("Ошибка создания превью для %s", self.pk or self.image.name)
 
@@ -306,6 +299,29 @@ class Photo(models.Model):
             logger.debug("Error reading IPTC for %s: %s", self.pk, e)
             
         return iptc_data
+
+    def delete(self, *args, **kwargs):
+        """Переопределяем delete для удаления файлов с диска"""
+        # Удаляем файл изображения
+        if self.image:
+            try:
+                if os.path.isfile(self.image.path):
+                    os.remove(self.image.path)
+                    logger.debug(f"Deleted image file: {self.image.path}")
+            except Exception as e:
+                logger.warning(f"Could not delete image file {self.image.path}: {e}")
+        
+        # Удаляем файл thumbnail
+        if self.thumbnail:
+            try:
+                if os.path.isfile(self.thumbnail.path):
+                    os.remove(self.thumbnail.path)
+                    logger.debug(f"Deleted thumbnail file: {self.thumbnail.path}")
+            except Exception as e:
+                logger.warning(f"Could not delete thumbnail file {self.thumbnail.path}: {e}")
+        
+        # Вызываем родительский метод delete
+        super().delete(*args, **kwargs)
 
 
 class PhotoView(models.Model):
