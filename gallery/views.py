@@ -547,6 +547,7 @@ def extract_file_metadata(file_path):
         result = subprocess.run([
             'exiftool', 
             '-j',  # JSON output
+            '-charset', 'utf8',  # Поддержка UTF-8 кодировки
             '-Title', '-Headline', '-ObjectName',  # Названия
             '-Description', '-Caption-Abstract', '-XPSubject',  # Описания
             '-Keywords', '-XPKeywords',  # Ключевые слова
@@ -627,7 +628,7 @@ def extract_file_metadata(file_path):
     except subprocess.TimeoutExpired:
         logger.warning("ExifTool timeout for %s", file_path)
     except FileNotFoundError:
-        logger.info("ExifTool not found. Install with: brew install exiftool")
+        logger.info("ExifTool not found. Install with: apt install exiftool")
     except Exception as e:
         logger.exception("Error running ExifTool for %s", file_path)
     
