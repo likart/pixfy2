@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Тарифы и лицензии - PixFly{% endblock %}
+
+{% block content %}
+<section class="bg-light py-5">
+    <div class="container text-center">
+        <h1 class="display-6 fw-bold mb-3">Гибкие тарифы для вашего бизнеса</h1>
+        <p class="lead text-muted mb-4">Выбирайте подходящий план и лицензии, чтобы безопасно использовать контент PixFly в своих проектах.</p>
+        <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">Создать аккаунт клиента</a>
+    </div>
+</section>
+
+<section class="container py-5">
+    <h2 class="h4 mb-4">Планы подписки</h2>
+    <div class="row g-4">
+        {% for bundle in bundles %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ bundle.name }}</h5>
+                        <p class="text-muted">{{ bundle.description }}</p>
+                        <p class="display-6">{{ bundle.price }}</p>
+                        <ul class="list-unstyled mb-4">
+                            {% for feature in bundle.features %}
+                                <li><i class="fas fa-check text-success me-2"></i>{{ feature }}</li>
+                            {% endfor %}
+                        </ul>
+                        <a href="{% url 'accounts:register' %}" class="btn btn-outline-primary mt-auto">Начать</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="bg-white py-5">
+    <div class="container">
+        <h2 class="h4 mb-4">Лицензии PixFly</h2>
+        <div class="row g-4">
+            {% for license in licenses %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ license.name }}</h5>
+                            <p class="text-muted">{{ license.short_description }}</p>
+                            <div class="fw-semibold mb-3">Множитель цены: ×{{ license.price_multiplier }}</div>
+                            <ul class="list-unstyled small flex-grow-1">
+                                {% if license.allowed_usage %}
+                                    <li><strong>Использование:</strong> {{ license.allowed_usage }}</li>
+                                {% endif %}
+                                {% if license.assets_limit %}
+                                    <li><strong>Ограничения:</strong> {{ license.assets_limit }}</li>
+                                {% endif %}
+                            </ul>
+                            {% if license.description %}
+                                <details class="mt-3">
+                                    <summary class="text-primary">Условия</summary>
+                                    <p class="small text-muted mt-2">{{ license.description }}</p>
+                                </details>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="container py-4">
+    <div class="row align-items-center bg-light rounded-3 p-4">
+        <div class="col-md-8">
+            <h3 class="h5 mb-2">Хотите продавать фотографии?</h3>
+            <p class="text-muted mb-0">Откройте аккаунт автора, загружайте работы и зарабатывайте на лицензиях PixFly.</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="{% url 'gallery:upload' %}" class="btn btn-outline-secondary">Вход для авторов</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

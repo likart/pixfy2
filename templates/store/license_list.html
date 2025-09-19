@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Типы лицензий - PixFly{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="h3 mb-4">Типы лицензий PixFly</h1>
+    <div class="row g-4">
+        {% for license in licenses %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ license.name }}</h5>
+                        <p class="text-muted">{{ license.short_description }}</p>
+                        <ul class="list-unstyled small flex-grow-1">
+                            {% if license.allowed_usage %}
+                                <li><strong>Использование:</strong> {{ license.allowed_usage }}</li>
+                            {% endif %}
+                            {% if license.assets_limit %}
+                                <li><strong>Ограничения:</strong> {{ license.assets_limit }}</li>
+                            {% endif %}
+                        </ul>
+                        <div class="mt-auto">
+                            <div class="fw-semibold">Множитель цены: ×{{ license.price_multiplier }}</div>
+                            {% if license.description %}
+                                <details class="mt-2">
+                                    <summary class="text-primary">Подробнее</summary>
+                                    <p class="small text-muted mt-2">{{ license.description }}</p>
+                                </details>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">Лицензии пока не настроены.</div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

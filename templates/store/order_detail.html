@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Заказ №{{ order.id }} - PixFly{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'store:orders' %}">Мои покупки</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Заказ №{{ order.id }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Состав заказа</span>
+                    <span class="badge bg-secondary">{{ order.get_status_display }}</span>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for item in order.items.all %}
+                        <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width: 100px;">
+                                    <img class="img-fluid rounded" src="{% if item.photo.thumbnail %}{{ item.photo.thumbnail.url }}{% else %}{{ item.photo.image.url }}{% endif %}" alt="{{ item.photo.title }}">
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">{{ item.photo.title }}</div>
+                                    <small class="text-muted">Лицензия: {{ item.license_type.name }}</small>
+                                </div>
+                            </div>
+                            <div class="text-md-end">
+                                <div class="fw-semibold mb-2">${{ item.unit_price }}</div>
+                                {% if order.status in ('paid', 'completed') %}
+                                    <a href="{% url 'store:download_order_item' item.id %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-download me-1"></i> Скачать
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted small">Доступ будет после оплаты</span>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Итого</h5>
+                    <p class="display-6">${{ order.total_amount }}</p>
+                    {% if order.status not in ('paid', 'completed') %}
+                        <a href="{% url 'store:payment' order.id %}" class="btn btn-primary w-100 mb-2">Перейти к оплате</a>
+                    {% endif %}
+                    <a href="{% url 'store:licenses' %}" class="btn btn-outline-secondary w-100">Условия лицензий</a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="text-muted">Информация клиента</h6>
+                    <p class="mb-1"><strong>{{ order.full_name }}</strong></p>
+                    <p class="mb-1">{{ order.email }}</p>
+                    {% if order.company %}
+                        <p class="mb-1">Компания: {{ order.company }}</p>
+                    {% endif %}
+                    {% if order.notes %}
+                        <p class="mb-0">Комментарий: {{ order.notes }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

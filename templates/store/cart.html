@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Корзина - PixFly{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Корзина</h1>
+        <a href="{% url 'gallery:home' %}" class="btn btn-outline-secondary">Продолжить поиск</a>
+    </div>
+
+    {% if items %}
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="list-group">
+                    {% for item in items %}
+                        <div class="list-group-item p-3">
+                            <div class="d-flex flex-column flex-md-row align-items-md-center gap-3">
+                                <div class="flex-shrink-0" style="width: 140px;">
+                                    <img class="img-fluid rounded" src="{% if item.photo.thumbnail %}{{ item.photo.thumbnail.url }}{% else %}{{ item.photo.image.url }}{% endif %}" alt="{{ item.photo.title }}">
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-1">{{ item.photo.title }}</h5>
+                                    <p class="text-muted mb-2">Автор: {{ item.photo.author.username }}</p>
+                                    <form method="post" action="{% url 'store:update_cart_item' item.key %}" class="row g-2 align-items-center">
+                                        {% csrf_token %}
+                                        <div class="col-md-7">
+                                            <select name="license" class="form-select form-select-sm">
+                                                {% for license in licenses %}
+                                                    <option value="{{ license.slug }}" {% if license.slug == item.license.slug %}selected{% endif %}>
+                                                        {{ license.name }} (×{{ license.price_multiplier }})
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            <small class="text-muted d-block">{{ item.license.short_description }}</small>
+                                        </div>
+                                        <div class="col-md-3 fw-semibold">
+                                            ${{ item.price }}
+                                        </div>
+                                        <div class="col-md-2 text-md-end">
+                                            <button type="submit" class="btn btn-outline-primary btn-sm">Обновить</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="ms-md-3">
+                                    <form method="post" action="{% url 'store:remove_from_cart' item.key %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-link text-danger p-0">Удалить</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Итого</h5>
+                        <p class="display-6">${{ total }}</p>
+                        <p class="text-muted small">Цена указана для выбранных лицензий. Оплата производится в долларах США.</p>
+                        <a href="{% url 'store:checkout' %}" class="btn btn-primary w-100 mb-2">Перейти к оформлению</a>
+                        <a href="{% url 'store:licenses' %}" class="btn btn-outline-secondary w-100">Сравнить лицензии</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-shopping-basket fa-3x text-muted mb-3"></i>
+            <h4>Корзина пуста</h4>
+            <p class="text-muted">Добавьте понравившиеся фотографии, чтобы оформить заказ.</p>
+            <a href="{% url 'gallery:home' %}" class="btn btn-primary">Перейти к каталогу</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

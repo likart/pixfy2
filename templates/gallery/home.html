@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if search_query %}
+        {{ search_query }} - PixFly
+    {% else %}
+        PixFly - Фотобанк
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <!-- Search Results Header - только при поиске -->
+    {% if search_query %}
+    <div class="container-fluid py-3">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="h4 mb-2">{{ search_query|title }} royalty-free images</h1>
+                <p class="text-muted mb-3">
+                    {{ total_photos|floatformat:0 }} {{ search_query }} stock photos, vectors, and illustrations are available royalty-free for download.
+                    <a href="#" class="text-decoration-none">See {{ search_query }} stock video clips</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filters exactly like Shutterstock -->
+    <div class="filters-container">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center mb-3">
+                <button class="btn btn-outline-secondary btn-sm me-3">
+                    <i class="fas fa-sliders-h me-1"></i> Filters
+                </button>
+                <div class="filter-tabs d-flex">
+                    <a href="{% url 'gallery:home' %}{% if search_query %}?search={{ search_query }}{% endif %}" 
+                       class="filter-btn {% if not current_category %}active{% endif %}">Photos</a>
+                    <a href="#" class="filter-btn">Vectors</a>
+                    <a href="#" class="filter-btn">Illustrations</a>
+                    <a href="#" class="filter-btn">3D Objects</a>
+                    <a href="#" class="filter-btn">AI Generated</a>
+                </div>
+            </div>
+            <div class="d-flex align-items-center">
+                <span class="filter-label me-2">Upload date</span>
+                <span class="filter-value me-2">Any time</span>
+                <i class="fas fa-chevron-down text-muted"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo Gallery -->
+    <div class="container-fluid">
+        {% if photos %}
+            <!-- Loading indicator -->
+            <div class="gallery-loading" id="galleryLoading">
+                <i class="fas fa-spinner"></i>
+                <div>Загрузка галереи...</div>
+            </div>
+            
+            <div class="photo-grid" id="photo-gallery">
+                {% for photo in photos %}
+                    <div class="photo-item" 
+                         data-width="{{ photo.width|default:400 }}" 
+                         data-height="{{ photo.height|default:300 }}"
+                         onclick="window.location.href='{% url 'gallery:photo_detail' photo.id %}'">
+                        <img src="{% if photo.thumbnail %}{{ photo.thumbnail.url }}{% else %}{{ photo.image.url }}{% endif %}" 
+                             alt="{{ photo.title }}" 
+                             loading="lazy"
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;broken-image&quot;><i class=&quot;fas fa-image fa-3x&quot;></i><br>Изображение недоступно</div>';">
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Load More Button / Pagination -->
+            {% if photos.has_other_pages %}
+                <div class="text-center my-5">
+                    <nav aria-label="Навигация по страницам">
+                        <ul class="pagination">
+                            {% if photos.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">Первая</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ photos.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">Предыдущая</a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in photos.paginator.page_range %}
+                                {% if photos.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > photos.number|add:'-3' and num < photos.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if photos.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ photos.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">Следующая</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ photos.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">Последняя</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    
+                    <p class="text-muted">
+                        Показано {{ photos.start_index }}-{{ photos.end_index }} из {{ photos.paginator.count }} результатов
+                    </p>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-search fa-3x text-muted"></i>
+                </div>
+                <h3>Ничего не найдено</h3>
+                <p class="text-muted">
+                    {% if search_query %}
+                        По запросу "{{ search_query }}" ничего не найдено. Попробуйте изменить поисковый запрос.
+                    {% else %}
+                        Пока нет загруженных фотографий.
+                    {% endif %}
+                </p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'gallery:upload' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Загрузить первую фотографию
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Justified Gallery Layout - как у Shutterstock
+document.addEventListener('DOMContentLoaded', function() {
+    const photoGrid = document.getElementById('photo-gallery');
+    const loadingIndicator = document.getElementById('galleryLoading');
+    if (!photoGrid) return;
+    
+    function createJustifiedLayout() {
+        const items = Array.from(photoGrid.children);
+        const containerWidth = photoGrid.offsetWidth - 30; // Minus padding
+        
+        // Адаптивная высота в зависимости от ширины экрана
+        let targetRowHeight = 280;
+        let gap = 10;
+        
+        if (window.innerWidth <= 576) {
+            targetRowHeight = 180;
+            gap = 5;
+        } else if (window.innerWidth <= 768) {
+            targetRowHeight = 220;
+            gap = 6;
+        } else if (window.innerWidth <= 1200) {
+            targetRowHeight = 250;
+            gap = 8;
+        }
+        
+        photoGrid.innerHTML = '';
+        
+        // Простой рабочий алгоритм justified layout
+        let rows = [];
+        let currentRow = [];
+        let currentRowWidth = 0;
+        
+        items.forEach(item => {
+            const width = parseInt(item.dataset.width) || 400;
+            const height = parseInt(item.dataset.height) || 300;
+            const aspectRatio = width / height;
+            const itemWidth = targetRowHeight * aspectRatio;
+            
+            // Проверяем помещается ли в текущий ряд (с учетом gaps)
+            const gapsInRow = currentRow.length * gap;
+            const totalWidthNeeded = currentRowWidth + itemWidth + gapsInRow;
+            
+            if (totalWidthNeeded <= containerWidth || currentRow.length === 0) {
+                currentRow.push({ item, width: itemWidth, aspectRatio });
+                currentRowWidth += itemWidth;
+            } else {
+                // Сохраняем текущий ряд и начинаем новый
+                if (currentRow.length > 0) {
+                    rows.push([...currentRow]);
+                }
+                currentRow = [{ item, width: itemWidth, aspectRatio }];
+                currentRowWidth = itemWidth;
+            }
+        });
+        
+        // Добавляем последний ряд
+        if (currentRow.length > 0) {
+            rows.push(currentRow);
+        }
+        
+        // Создаем justified ряды
+        rows.forEach((row, rowIndex) => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'photo-row';
+            
+            // Вычисляем доступную ширину для ряда
+            const totalGaps = (row.length - 1) * gap;
+            const availableWidth = containerWidth - totalGaps;
+            
+            // Вычисляем суммарную ширину всех элементов в ряду
+            const totalItemWidth = row.reduce((sum, item) => sum + item.width, 0);
+            
+            // Масштабируем элементы чтобы заполнить всю ширину
+            const scale = availableWidth / totalItemWidth;
+            const actualRowHeight = targetRowHeight * scale;
+            
+            // Ограничиваем высоту в разумных пределах
+            const finalRowHeight = Math.max(150, Math.min(350, actualRowHeight));
+            
+            // Вычисляем точные ширины
+            const exactWidths = row.map(({ aspectRatio }) => finalRowHeight * aspectRatio);
+            const totalExactWidth = exactWidths.reduce((sum, w) => sum + w, 0);
+            
+            // Корректируем ширины чтобы точно заполнить availableWidth
+            const correction = availableWidth / totalExactWidth;
+            let usedWidth = 0;
+            
+            row.forEach(({ item, aspectRatio }, itemIndex) => {
+                let finalWidth;
+                
+                if (itemIndex === row.length - 1) {
+                    // Последний элемент заполняет оставшееся место
+                    finalWidth = availableWidth - usedWidth;
+                } else {
+                    finalWidth = Math.round(exactWidths[itemIndex] * correction);
+                    usedWidth += finalWidth;
+                }
+                
+                item.style.width = finalWidth + 'px';
+                item.style.height = finalRowHeight + 'px';
+                item.style.flexShrink = '0';
+                
+                // Быстрое появление без задержек
+                item.style.opacity = '1';
+                item.style.transform = 'translateY(0)';
+                item.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                
+                rowDiv.appendChild(item);
+            });
+            
+            photoGrid.appendChild(rowDiv);
+        });
+        
+        // Скрываем индикатор загрузки если он есть
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+    
+    // Запускаем layout немедленно
+    createJustifiedLayout();
+    
+    // Пересчет при изменении размера окна
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(createJustifiedLayout, 200);
+    });
+});
+</script>
+{% endblock %}

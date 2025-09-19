@@ -1,0 +1,438 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои фотографии - PixFly{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bulk-toolbar .btn { min-width: 130px; }
+    .bulk-toolbar .btn-icon { min-width: auto; }
+    .user-photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 18px;
+    }
+    .photo-card {
+        position: relative;
+        border-radius: 14px;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(15, 31, 62, 0.08);
+    }
+    .photo-card:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(15, 31, 62, 0.12); }
+    .photo-card img { width: 100%; height: 200px; object-fit: cover; display: block; }
+    .photo-card .info {
+        padding: 12px 14px;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .photo-card .title { font-weight: 600; color: #1f2735; }
+    .photo-card .meta { font-size: 12px; color: #74809d; display: flex; justify-content: space-between; }
+    .photo-card .meta span { display: inline-flex; align-items: center; gap: 4px; }
+    .photo-card .status { position: absolute; top: 12px; left: 12px; display: flex; gap: 6px; }
+    .photo-card .select-toggle {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(255,255,255,0.9);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(15,31,62,0.18);
+    }
+    .photo-card .form-check-input { cursor: pointer; }
+    .photo-card.selected::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border: 3px solid var(--shutterstock-red);
+        border-radius: 16px;
+        pointer-events: none;
+    }
+    #editPanel { position: sticky; top: 20px; }
+    #editPanel[hidden] { display: none !important; }
+    #editPanel .form-text { font-size: 12px; color: #7f8aa3; }
+    .selection-counter { font-weight: 600; }
+    .stats-cards .card { border: none; border-radius: 14px; box-shadow: 0 8px 20px rgba(15,31,62,0.08); }
+    .stats-cards .card-title { margin-bottom: 0; font-size: 1.7rem; }
+    .stats-cards .text-muted { text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row g-4">
+        <div class="col-lg-9">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
+                <div>
+                    <h1 class="h3 mb-1">Мои фотографии</h1>
+                    <p class="text-muted mb-0">Управляйте своими работами, редактируйте метаданные и удаляйте лишнее</p>
+                </div>
+                <a href="{% url 'gallery:upload' %}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Загрузить фото</a>
+            </div>
+
+            {% if photos %}
+                <div class="stats-cards row g-3 mb-4">
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ photos.paginator.count }}</h5>
+                                <p class="text-muted mb-0">Всего фото</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ user.profile.total_views|default:0 }}</h5>
+                                <p class="text-muted mb-0">Просмотры</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ user.profile.total_downloads|default:0 }}</h5>
+                                <p class="text-muted mb-0">Загрузки</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ photos|length }}</h5>
+                                <p class="text-muted mb-0">В этом списке</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4 shadow-sm border-0 bulk-toolbar">
+                    <div class="card-body d-flex flex-wrap gap-2 align-items-center">
+                        <div>Выбрано: <span id="selectedCount" class="selection-counter">0</span></div>
+                        <div class="ms-auto d-flex flex-wrap gap-2">
+                            <button class="btn btn-outline-secondary btn-sm" id="selectAllBtn"><i class="far fa-check-square me-1"></i>Выбрать все</button>
+                            <button class="btn btn-outline-secondary btn-sm" id="clearSelectionBtn" disabled>Снять выделение</button>
+                            <button class="btn btn-outline-danger btn-sm" id="deleteSelectedBtn" disabled><i class="fas fa-trash me-1"></i>Удалить выбранные</button>
+                            <button class="btn btn-outline-secondary btn-sm" id="deleteAllBtn"><i class="fas fa-trash-alt me-1"></i>Удалить ВСЕ ({{ photos.paginator.count }})</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="user-photo-grid" id="photoGrid">
+                    {% for photo in photos %}
+                        <div class="photo-card" 
+                             data-photo-id="{{ photo.id }}"
+                             data-title="{{ photo.title|escapejs }}"
+                             data-description="{{ photo.description|default:''|escapejs }}"
+                             data-keywords="{{ photo.keywords|default:''|escapejs }}"
+                             data-category-id="{{ photo.category_id|default:'' }}">
+                            <img src="{% if photo.thumbnail %}{{ photo.thumbnail.url }}{% else %}{{ photo.image.url }}{% endif %}" alt="{{ photo.title }}" loading="lazy">
+                            <div class="status">
+                                {% if photo.is_approved %}
+                                    <span class="badge bg-success">Одобрено</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Модерация</span>
+                                {% endif %}
+                                {% if photo.is_featured %}
+                                    <span class="badge bg-primary">Топ</span>
+                                {% endif %}
+                            </div>
+                            <div class="select-toggle">
+                                <input class="form-check-input photo-checkbox" type="checkbox" value="{{ photo.id }}">
+                            </div>
+                            <div class="info">
+                                <div class="title" data-field="title">{{ photo.title }}</div>
+                                <div class="meta">
+                                    <span><i class="fas fa-calendar-alt"></i>{{ photo.uploaded_at|date:"d.m.Y" }}</span>
+                                    <span><i class="fas fa-eye"></i>{{ photo.views }}</span>
+                                </div>
+                                <div class="meta">
+                                    <span><i class="fas fa-cloud-download-alt"></i>{{ photo.downloads }}</span>
+                                    <span data-field="category">
+                                        {% if photo.category %}{{ photo.category.name }}{% else %}Без категории{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% if photos.has_other_pages %}
+                    <div class="text-center my-5">
+                        <nav aria-label="Навигация по страницам">
+                            <ul class="pagination justify-content-center">
+                                {% if photos.has_previous %}
+                                    <li class="page-item"><a class="page-link" href="?page=1">Первая</a></li>
+                                    <li class="page-item"><a class="page-link" href="?page={{ photos.previous_page_number }}">Назад</a></li>
+                                {% endif %}
+                                {% for num in photos.paginator.page_range %}
+                                    {% if photos.number == num %}
+                                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                    {% elif num > photos.number|add:'-3' and num < photos.number|add:'3' %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if photos.has_next %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ photos.next_page_number }}">Вперёд</a></li>
+                                    <li class="page-item"><a class="page-link" href="?page={{ photos.paginator.num_pages }}">Последняя</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+                    <h3>У вас пока нет фотографий</h3>
+                    <p class="text-muted">Загрузите свою первую фотографию и начните продавать её аудитории PixFly.</p>
+                    <a href="{% url 'gallery:upload' %}" class="btn btn-primary">Загрузить фотографию</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-3">
+            <div class="card shadow-sm border-0" id="editPanel" hidden>
+                <div class="card-body">
+                    <h5 class="mb-3">Редактирование</h5>
+                    <form id="editForm">
+                        <div class="mb-3">
+                            <label for="editTitle" class="form-label">Название</label>
+                            <input type="text" class="form-control" id="editTitle" maxlength="200" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label">Описание</label>
+                            <textarea class="form-control" id="editDescription" rows="3"></textarea>
+                            <div class="form-text">Кратко опишите содержание кадра.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editKeywords" class="form-label">Ключевые слова</label>
+                            <input type="text" class="form-control" id="editKeywords" placeholder="через запятую">
+                            <div class="form-text">Например: природа, рассвет, арктика</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCategory" class="form-label">Категория</label>
+                            <select class="form-select" id="editCategory">
+                                <option value="">Без категории</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Сохранить изменения</button>
+                    </form>
+                </div>
+            </div>
+            <div class="alert alert-info" id="editPlaceholder">
+                Выберите фотографию, чтобы изменить название, описание и ключевые слова.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const csrftoken = document.cookie.split(';').find(item => item.trim().startsWith('csrftoken='))?.split('=')[1] || '';
+    const photoGrid = document.getElementById('photoGrid');
+    if (!photoGrid) return;
+
+    const selected = new Set();
+    const selectedCountEl = document.getElementById('selectedCount');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+    const deleteAllBtn = document.getElementById('deleteAllBtn');
+    const editPanel = document.getElementById('editPanel');
+    const editPlaceholder = document.getElementById('editPlaceholder');
+    const editForm = document.getElementById('editForm');
+    let currentEditingId = null;
+
+    function updateToolbar() {
+        const count = selected.size;
+        const totalPhotos = photoGrid.querySelectorAll('.photo-card').length;
+        
+        selectedCountEl.textContent = count;
+        clearSelectionBtn.disabled = count === 0;
+        deleteSelectedBtn.disabled = count === 0;
+        deleteAllBtn.style.display = totalPhotos > 0 ? 'inline-block' : 'none';
+
+        if (count === 1) {
+            loadEditPanel(Array.from(selected)[0]);
+        } else {
+            currentEditingId = null;
+            editPanel.hidden = true;
+            editPlaceholder.style.display = 'block';
+        }
+    }
+
+    function toggleSelection(card, checked) {
+        const photoId = card.dataset.photoId;
+        if (!photoId) return;
+        if (checked) {
+            selected.add(photoId);
+            card.classList.add('selected');
+        } else {
+            selected.delete(photoId);
+            card.classList.remove('selected');
+        }
+        const checkbox = card.querySelector('.photo-checkbox');
+        if (checkbox) checkbox.checked = checked;
+        updateToolbar();
+    }
+
+    function selectAll() {
+        photoGrid.querySelectorAll('.photo-card').forEach(card => toggleSelection(card, true));
+    }
+
+    function clearSelection() {
+        photoGrid.querySelectorAll('.photo-card.selected').forEach(card => toggleSelection(card, false));
+    }
+
+    function loadEditPanel(photoId) {
+        const card = photoGrid.querySelector(`.photo-card[data-photo-id="${photoId}"]`);
+        if (!card) return;
+        currentEditingId = photoId;
+        editPlaceholder.style.display = 'none';
+        editPanel.hidden = false;
+        document.getElementById('editTitle').value = card.dataset.title || '';
+        document.getElementById('editDescription').value = card.dataset.description || '';
+        document.getElementById('editKeywords').value = card.dataset.keywords || '';
+        document.getElementById('editCategory').value = card.dataset.categoryId || '';
+    }
+
+    photoGrid.addEventListener('click', function(e) {
+        const card = e.target.closest('.photo-card');
+        if (!card) return;
+        const checkbox = card.querySelector('.photo-checkbox');
+        if (!checkbox) return;
+        const targetIsCheckbox = e.target.classList.contains('photo-checkbox');
+        if (!targetIsCheckbox) {
+            checkbox.checked = !checkbox.checked;
+        }
+        toggleSelection(card, checkbox.checked);
+    });
+
+    selectAllBtn.addEventListener('click', function() {
+        selectAll();
+    });
+
+    clearSelectionBtn.addEventListener('click', function() {
+        clearSelection();
+    });
+
+    deleteSelectedBtn.addEventListener('click', function() {
+        if (!selected.size) return;
+        if (!confirm('Удалить выбранные фотографии?')) return;
+        fetch('{% url "gallery:manage_user_photos" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ action: 'delete', ids: Array.from(selected) }),
+        }).then(res => res.json()).then(data => {
+            if (data.success) {
+                Array.from(selected).forEach(id => {
+                    const card = photoGrid.querySelector(`.photo-card[data-photo-id="${id}"]`);
+                    if (card) card.remove();
+                });
+                selected.clear();
+                updateToolbar();
+                location.reload();
+            } else {
+                alert(data.error || 'Не удалось удалить фотографии');
+            }
+        }).catch(() => alert('Ошибка сети при удалении'));
+    });
+
+    deleteAllBtn.addEventListener('click', function() {
+        const totalPhotos = {{ photos.paginator.count }};  // Общее количество из backend
+        if (totalPhotos === 0) {
+            alert('Нет фотографий для удаления');
+            return;
+        }
+        
+        if (!confirm(`Вы действительно хотите удалить ВСЕ ${totalPhotos} фотографий?\n\nВключая фотографии на других страницах!\n\nЭто действие необратимо!`)) {
+            return;
+        }
+        
+        if (!confirm('ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ!\n\nВСЕ ваши фотографии будут НАВСЕГДА удалены!\n\nВключая те, что не показаны на этой странице!\n\nПродолжить?')) {
+            return;
+        }
+        
+        // Блокируем кнопку во время удаления
+        deleteAllBtn.disabled = true;
+        deleteAllBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Удаляю...';
+        
+        fetch('{% url "gallery:manage_user_photos" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ action: 'delete_all' }),
+        }).then(res => res.json()).then(data => {
+            if (data.success) {
+                alert(`✅ Успешно удалено ${data.deleted} фотографий!\n\nВаша галерея очищена.`);
+                location.reload();
+            } else {
+                alert(data.error || 'Не удалось удалить фотографии');
+                deleteAllBtn.disabled = false;
+                deleteAllBtn.innerHTML = '<i class="fas fa-trash-alt me-1"></i>Удалить ВСЕ ({{ photos.paginator.count }})';
+            }
+        }).catch(() => {
+            alert('Ошибка сети при удалении');
+            deleteAllBtn.disabled = false;
+            deleteAllBtn.innerHTML = '<i class="fas fa-trash-alt me-1"></i>Удалить ВСЕ ({{ photos.paginator.count }})';
+        });
+    });
+
+    editForm?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!currentEditingId) return;
+        const payload = {
+            action: 'update',
+            id: currentEditingId,
+            title: document.getElementById('editTitle').value,
+            description: document.getElementById('editDescription').value,
+            keywords: document.getElementById('editKeywords').value,
+            category: document.getElementById('editCategory').value,
+        };
+        fetch('{% url "gallery:manage_user_photos" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify(payload),
+        }).then(res => res.json()).then(data => {
+            if (data.success) {
+                const card = photoGrid.querySelector(`.photo-card[data-photo-id="${currentEditingId}"]`);
+                if (card) {
+                    card.dataset.title = data.photo.title;
+                    card.dataset.description = data.photo.description;
+                    card.dataset.keywords = data.photo.keywords;
+                    card.dataset.categoryId = data.photo.category_id;
+                    const titleEl = card.querySelector('[data-field="title"]');
+                    const categoryEl = card.querySelector('[data-field="category"]');
+                    if (titleEl) titleEl.textContent = data.photo.title;
+                    if (categoryEl) categoryEl.textContent = data.photo.category || 'Без категории';
+                }
+                alert('Изменения сохранены');
+            } else {
+                alert(data.error || 'Не удалось сохранить изменения');
+            }
+        }).catch(() => alert('Ошибка сети при сохранении'));
+    });
+
+    updateToolbar();
+})();
+</script>
+{% endblock %}

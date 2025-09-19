@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Оплата заказа #{{ order.id }} - PixFly{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-5 text-center">
+                    <i class="fas fa-credit-card fa-3x text-primary mb-3"></i>
+                    <h1 class="h4 mb-3">Оплата заказа №{{ order.id }}</h1>
+                    <p class="mb-4">
+                        Это демонстрационная заглушка оплаты. В реальном проекте здесь будет виджет платёжного провайдера.
+                    </p>
+                    <p class="lead mb-4">К оплате: <strong>${{ order.total_amount }}</strong></p>
+                    <p class="text-muted mb-4">
+                        Нажмите кнопку ниже, чтобы имитировать успешную оплату и получить доступ к скачиванию файлов.
+                    </p>
+                    <form method="post" action="{% url 'store:simulate_payment' order.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-lg">Подтвердить оплату (демо)</button>
+                    </form>
+                    <div class="mt-4">
+                        <a href="{% url 'store:order_detail' order.id %}">Просмотреть заказ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

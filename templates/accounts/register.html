@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Регистрация - PixFly{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        {% if author_signup %}
+                            <h2 class="h4 mb-2">Стать автором PixFly</h2>
+                            <p class="text-muted">Загружайте фотографии, управляйте продажами и получайте доход</p>
+                        {% else %}
+                            <h2 class="h4 mb-2">Создать аккаунт клиента</h2>
+                            <p class="text-muted">Покупайте изображения, управляйте лицензиями и отслеживайте загрузки</p>
+                        {% endif %}
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        {% if author_signup %}
+                            <input type="hidden" name="author_signup" value="1">
+                        {% endif %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">Имя пользователя</label>
+                            {{ form.username }}
+                            {% if form.username.help_text %}
+                                <div class="form-text">{{ form.username.help_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                            {{ form.email }}
+                            <div class="form-text">На этот адрес мы отправим квитанцию и ссылки на загрузку.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label">Пароль</label>
+                            {{ form.password1 }}
+                            {% if form.password1.help_text %}
+                                <div class="form-text">{{ form.password1.help_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label">Подтверждение пароля</label>
+                            {{ form.password2 }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-3">Зарегистрироваться</button>
+                    </form>
+
+                        <div class="text-center">
+                            <p class="text-muted">Уже есть аккаунт? 
+                                <a href="{% url 'accounts:login' %}" class="text-decoration-none">Войти</a>
+                            </p>
+                        {% if not author_signup %}
+                            <p class="small mb-0">Хотите продавать фотографии? <a href="{% url 'accounts:register' %}?author=1" class="text-decoration-none">Стать автором</a></p>
+                        {% else %}
+                            <p class="small mb-0">Уже автор? <a href="{% url 'accounts:login' %}?next={% url 'gallery:upload' %}" class="text-decoration-none">Вход для авторов</a></p>
+                        {% endif %}
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control {
+    border: 1px solid #ddd;
+    padding: 12px 16px;
+    border-radius: 6px;
+}
+
+.form-control:focus {
+    border-color: var(--shutterstock-red);
+    box-shadow: 0 0 0 0.2rem rgba(230, 0, 35, 0.25);
+}
+</style>
+{% endblock %}

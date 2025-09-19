@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Оформление заказа - PixFly{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <h1 class="h3 mb-4">Оформление заказа</h1>
+            <form method="post" class="card">
+                <div class="card-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="id_full_name">Имя и фамилия</label>
+                        {{ form.full_name }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="id_email">Email</label>
+                        {{ form.email }}
+                        <div class="form-text">На эту почту будет отправлена квитанция и ссылки на загрузку.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="id_company">Компания</label>
+                        {{ form.company }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="id_notes">Комментарий к заказу</label>
+                        {{ form.notes }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Перейти к оплате</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ваш заказ</h5>
+                    <ul class="list-group list-group-flush mb-3">
+                        {% for item in items %}
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-semibold">{{ item.photo.title }}</div>
+                                    <small class="text-muted">{{ item.license.name }}</small>
+                                </div>
+                                <div>${{ item.price }}</div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="d-flex justify-content-between fw-semibold mb-3">
+                        <span>Итого</span>
+                        <span>${{ total }}</span>
+                    </div>
+                    <a href="{% url 'store:licenses' %}" class="small">Условия лицензий</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

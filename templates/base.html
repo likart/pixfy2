@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PixFly - Фотобанк{% endblock %}</title>
+    
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --shutterstock-red: #e60023;
+            --shutterstock-dark: #1a1a1a;
+            --shutterstock-gray: #666666;
+            --shutterstock-light-gray: #f5f5f5;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #fff;
+            font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+            letter-spacing: -0.01em;
+        }
+
+        /* Top Navigation exactly like Shutterstock */
+        .navbar {
+            background-color: var(--shutterstock-dark) !important;
+            padding: 12px 0;
+            position: relative;
+        }
+
+        .navbar-brand-container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .navbar-brand {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff !important;
+            text-decoration: none;
+            letter-spacing: -0.01em;
+            margin: 0;
+        }
+
+        .navbar-nav .nav-link {
+            color: #fff !important;
+            font-size: 14px;
+            font-weight: 400;
+            padding: 8px 12px !important;
+            transition: color 0.2s;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #ccc !important;
+        }
+
+        .btn-outline-light {
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 6px 16px;
+            font-size: 13px;
+            border-radius: 4px;
+        }
+
+        .btn-outline-light:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: 4px;
+            right: 0;
+            background: var(--shutterstock-red);
+            color: #fff;
+            border-radius: 999px;
+            padding: 0 6px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .search-wrapper {
+            display: flex;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .search-dropdown {
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .search-category-btn {
+            background: #f8f9fa;
+            border: none;
+            padding: 14px 16px;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .search-category-btn:hover {
+            background: #e9ecef;
+        }
+
+        .main-search-input {
+            flex: 1;
+            border: none;
+            padding: 14px 16px;
+            font-size: 16px;
+            outline: none;
+            color: #333;
+        }
+
+        .main-search-input::placeholder {
+            color: #999;
+        }
+
+        .main-search-btn {
+            background: var(--shutterstock-red);
+            border: none;
+            padding: 0 20px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .main-search-btn:hover {
+            background: #cc001f;
+        }
+
+        .search-by-image-btn {
+            background: #f8f9fa;
+            border: none;
+            border-left: 1px solid #e0e0e0;
+            padding: 14px 16px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .search-by-image-btn:hover {
+            background: #e9ecef;
+        }
+
+        /* Navigation menu */
+        .nav-menu {
+            background-color: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0;
+        }
+
+        .nav-menu .nav-link {
+            color: var(--shutterstock-gray) !important;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 12px 20px !important;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-menu .nav-link:hover,
+        .nav-menu .nav-link.active {
+            color: var(--shutterstock-dark) !important;
+            border-bottom-color: var(--shutterstock-red);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--shutterstock-red);
+            border-color: var(--shutterstock-red);
+            padding: 8px 20px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background-color: #cc001f;
+            border-color: #cc001f;
+        }
+
+        .btn-outline-primary {
+            color: var(--shutterstock-red);
+            border-color: var(--shutterstock-red);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--shutterstock-red);
+            border-color: var(--shutterstock-red);
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .h1 { font-weight: 700; }
+        .h2 { font-weight: 600; }
+        .h3 { font-weight: 600; }
+        .h4 { font-weight: 500; }
+        .h5 { font-weight: 500; }
+        .h6 { font-weight: 500; }
+
+        /* Gallery styles - Justified Layout */
+        .photo-grid {
+            margin: 15px 0;
+            padding: 0 15px;
+            opacity: 1;
+        }
+        
+        
+        .photo-row {
+            display: flex;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        @media (max-width: 1200px) {
+            .photo-row { gap: 8px; margin-bottom: 8px; }
+        }
+
+        @media (max-width: 768px) {
+            .photo-row { gap: 6px; margin-bottom: 6px; }
+        }
+
+        @media (max-width: 576px) {
+            .photo-row { gap: 5px; margin-bottom: 5px; }
+        }
+
+        .photo-item {
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+            background: #f8f9fa;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            flex-shrink: 0;
+            display: block;
+        }
+        
+        /* Скрываем только индикатор загрузки по умолчанию */
+        .gallery-loading {
+            display: none;
+        }
+        
+        .photo-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            object-position: center;
+            transition: none;
+            transform: none;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            will-change: auto;
+        }
+
+        .photo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%);
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 16px;
+            pointer-events: none;
+        }
+
+        .photo-title {
+            color: white;
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .photo-author {
+            color: #ccc;
+            font-size: 12px;
+        }
+
+        .photo-stats {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.6);
+            padding: 4px 8px;
+            border-radius: 12px;
+            color: white;
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .broken-image {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            background: #f8f9fa;
+            color: #6c757d;
+            text-align: center;
+            font-size: 12px;
+            border-radius: 8px;
+        }
+
+        .broken-image i {
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        /* Filters exactly like Shutterstock */
+        .filters-container {
+            background-color: white;
+            padding: 16px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: none;
+            padding: 8px 16px;
+            margin-right: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            color: #333;
+            border-bottom-color: var(--shutterstock-red);
+            text-decoration: none;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .filter-value {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Pagination */
+        .pagination {
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .page-link {
+            color: var(--shutterstock-gray);
+            border-color: #ddd;
+        }
+
+        .page-link:hover {
+            color: var(--shutterstock-red);
+            border-color: var(--shutterstock-red);
+        }
+
+        .page-item.active .page-link {
+            background-color: var(--shutterstock-red);
+            border-color: var(--shutterstock-red);
+        }
+
+        /* Footer */
+        .footer {
+            background-color: var(--shutterstock-dark);
+            color: #ccc;
+            padding: 40px 0;
+            margin-top: 60px;
+        }
+
+        .footer h6 {
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .footer a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        /* Upload styles */
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--shutterstock-red);
+            background-color: #fafafa;
+        }
+
+        .progress {
+            height: 6px;
+            margin: 16px 0;
+        }
+
+        .progress-bar {
+            background-color: var(--shutterstock-red);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .search-container {
+                margin: 10px 0;
+                max-width: none;
+            }
+            
+            .navbar-nav {
+                text-align: center;
+            }
+            
+            .nav-menu .nav-link {
+                padding: 8px 12px !important;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Top Navigation exactly like Shutterstock -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <!-- Left side -->
+            <div class="d-flex align-items-center">
+                <button class="navbar-toggler border-0 me-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+
+            <!-- Center Logo -->
+            <div class="navbar-brand-container">
+                <a class="navbar-brand mx-auto" href="{% url 'gallery:home' %}">PixFly</a>
+            </div>
+
+            <!-- Right side -->
+            <div class="d-flex align-items-center">
+                <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                    <ul class="navbar-nav align-items-center">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'store:pricing' %}">Pricing</a>
+                        </li>
+                        {% if user.is_authenticated %}
+                            {% with user.profile.is_contributor as is_contributor %}
+                                {% if is_contributor %}
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{% url 'gallery:upload' %}">
+                                            <i class="fas fa-cloud-upload-alt me-1"></i> Загрузить фото
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{% url 'gallery:user_photos' %}">
+                                            <i class="fas fa-images me-1"></i> Мои фотографии
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="nav-item">
+                                        <a class="nav-link position-relative" href="{% url 'store:cart' %}" title="Корзина">
+                                            <i class="fas fa-shopping-basket"></i>
+                                            {% if cart_item_count %}
+                                                <span class="cart-badge">{{ cart_item_count }}</span>
+                                            {% endif %}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link text-light dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-user-circle"></i>
+                                        <span>{{ user.get_full_name|default:user.username }}</span>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        {% if not is_contributor %}
+                                            <li><a class="dropdown-item" href="{% url 'store:orders' %}">Мои покупки</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'store:cart' %}">Корзина</a></li>
+                                        {% endif %}
+                                        <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Профиль</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Выйти</a></li>
+                                    </ul>
+                                </li>
+                            {% endwith %}
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link position-relative" href="{% url 'store:cart' %}" title="Корзина">
+                                    <i class="fas fa-shopping-basket"></i>
+                                    {% if cart_item_count %}
+                                        <span class="cart-badge">{{ cart_item_count }}</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'accounts:register' %}">Sign up</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'accounts:login' %}">Log in</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Bar Section exactly like Shutterstock -->
+    <div class="search-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10">
+                    <form class="main-search-form" method="GET" action="{% url 'gallery:home' %}">
+                        <div class="search-wrapper">
+                            <div class="search-dropdown">
+                                <button type="button" class="search-category-btn" data-bs-toggle="dropdown">
+                                    <i class="fas fa-images me-1"></i>
+                                    All images
+                                    <i class="fas fa-chevron-down ms-1"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-images me-2"></i>All images</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-photo-video me-2"></i>Photos</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-vector-square me-2"></i>Vectors</a></li>
+                                </ul>
+                            </div>
+                            <input type="text" class="main-search-input" name="search" 
+                                   placeholder="Search for images..." 
+                                   value="{{ search_query|default:'' }}">
+                            <button type="submit" class="main-search-btn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <button type="button" class="search-by-image-btn" title="Search by image">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Navigation -->
+    <nav class="nav-menu">
+        <div class="container-fluid">
+            <ul class="nav justify-content-center">
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'gallery:home' %}">Images</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Video</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Music</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Editorial</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">3D</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">AI solutions</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Studios</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Business services</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container-fluid">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <h6>Компания</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">О нас</a></li>
+                        <li><a href="#">Карьера</a></li>
+                        <li><a href="#">Пресс-центр</a></li>
+                        <li><a href="#">Блог</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Сообщество</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Форум</a></li>
+                        <li><a href="#">Конкурсы</a></li>
+                        <li><a href="#">Партнеры</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Поддержка</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Помощь</a></li>
+                        <li><a href="#">Контакты</a></li>
+                        <li><a href="{% url 'store:licenses' %}">Лицензии</a></li>
+                        <li><a href="#">Условия использования</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Социальные сети</h6>
+                    <div class="d-flex">
+                        <a href="#" class="me-3"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#" class="me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#"><i class="fab fa-youtube fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center">
+                <p>&copy; 2025 PixFly. Все права защищены.</p>
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 mt-3">
+                    <a href="{% url 'accounts:register' %}?author=1" class="btn btn-primary btn-sm">Стать автором</a>
+                    <a href="{% url 'accounts:login' %}?next={% url 'gallery:upload' %}" class="btn btn-outline-light btn-sm">Вход для авторов</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

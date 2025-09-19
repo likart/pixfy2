@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест загрузки</title>
+</head>
+<body>
+    <h1>Тест системы загрузки</h1>
+    
+    <h2>1. Проверка CSRF токена</h2>
+    <div id="csrf-check">Загружается...</div>
+    
+    <h2>2. Простая форма загрузки</h2>
+    <form id="testForm" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="">
+        <input type="file" name="file" accept="image/jpeg">
+        <button type="submit">Загрузить</button>
+    </form>
+    
+    <h2>3. Логи</h2>
+    <div id="logs" style="background: #f0f0f0; padding: 10px; height: 300px; overflow-y: scroll; font-family: monospace; white-space: pre;"></div>
+    
+    <script>
+        const logs = document.getElementById('logs');
+        function log(message) {
+            logs.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        // Получаем CSRF токен
+        fetch('/upload/', {
+            method: 'GET',
+            credentials: 'include'
+        })
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const csrfToken = doc.querySelector('[name=csrfmiddlewaretoken]');
+            
+            if (csrfToken) {
+                document.querySelector('[name=csrfmiddlewaretoken]').value = csrfToken.value;
+                document.getElementById('csrf-check').textContent = 'CSRF токен получен: ' + csrfToken.value.substring(0, 10) + '...';
+                log('CSRF токен получен');
+            } else {
+                document.getElementById('csrf-check').textContent = 'CSRF токен НЕ найден!';
+                log('ОШИБКА: CSRF токен не найден');
+            }
+        })
+        .catch(err => {
+            document.getElementById('csrf-check').textContent = 'Ошибка получения токена: ' + err;
+            log('Ошибка получения CSRF токена: ' + err);
+        });
+        
+        // Обработчик формы
+        document.getElementById('testForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const file = formData.get('file');
+            
+            if (!file || file.size === 0) {
+                log('Файл не выбран');
+                return;
+            }
+            
+            log('Начинаем загрузку файла: ' + file.name + ' (' + file.size + ' байт)');
+            
+            fetch('/upload/temp/', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            })
+            .then(response => {
+                log('Получен ответ со статусом: ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                log('Ответ сервера: ' + JSON.stringify(data, null, 2));
+                if (data.success) {
+                    log('✅ Файл успешно загружен!');
+                } else {
+                    log('❌ Ошибка: ' + data.error);
+                }
+            })
+            .catch(err => {
+                log('❌ Ошибка сети: ' + err);
+            });
+        });
+        
+        log('Тестовая страница загружена');
+    </script>
+</body>
+</html>

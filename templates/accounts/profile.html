@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Профиль - PixFly{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" alt="{{ user.username }}" 
+                             class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-secondary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                             style="width: 120px; height: 120px;">
+                            <i class="fas fa-user fa-3x text-white"></i>
+                        </div>
+                    {% endif %}
+                    <h4>{{ user.username }}</h4>
+                    <p class="text-muted">{{ profile.bio|default:"Расскажите о себе..." }}</p>
+                    
+                    <div class="row text-center mt-4">
+                        <div class="col-4">
+                            <h5>{{ profile.total_photos }}</h5>
+                            <small class="text-muted">Фото</small>
+                        </div>
+                        <div class="col-4">
+                            <h5>{{ profile.total_views }}</h5>
+                            <small class="text-muted">Просмотры</small>
+                        </div>
+                        <div class="col-4">
+                            <h5>{{ profile.total_downloads }}</h5>
+                            <small class="text-muted">Загрузки</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Редактировать профиль</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="avatar" class="form-label">Аватар</label>
+                            <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">О себе</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3">{{ profile.bio }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="website" class="form-label">Веб-сайт</label>
+                            <input type="url" class="form-control" id="website" name="website" value="{{ profile.website }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Местоположение</label>
+                            <input type="text" class="form-control" id="location" name="location" value="{{ profile.location }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="email_notifications" 
+                                       name="email_notifications" {% if profile.email_notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="email_notifications">
+                                    Email уведомления
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="public_profile" 
+                                       name="public_profile" {% if profile.public_profile %}checked{% endif %}>
+                                <label class="form-check-label" for="public_profile">
+                                    Публичный профиль
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ photo.title }} - PixFly{% endblock %}
+
+{% block extra_css %}
+<style>
+    .photo-preview-card {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        overflow: visible;
+        position: relative;
+        box-shadow: none;
+    }
+
+    .photo-preview-card img {
+        width: 100%;
+        height: 100%;
+        max-height: 70vh;
+        object-fit: contain;
+        background: transparent;
+    }
+
+    .photo-preview-card .watermark {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        font-size: clamp(1.8rem, 4.5vw, 3.5rem);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8rem;
+        color: rgba(255,255,255,0.35);
+        text-shadow: 0 0 24px rgba(0,0,0,0.28);
+        mix-blend-mode: soft-light;
+    }
+
+    .photo-preview-card .photo-guard {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(15,31,62,0.08), rgba(255,255,255,0));
+        pointer-events: auto;
+        cursor: not-allowed;
+    }
+
+    .photo-preview-card .photo-guard::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.15) 15%, transparent 16%);
+        background-size: 30px 30px;
+        mix-blend-mode: soft-light;
+        opacity: 0.4;
+    }
+
+    .photo-meta-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 16px;
+    }
+
+    .photo-meta-item small {
+        display: block;
+        color: #8992a3;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+    }
+
+    .photo-meta-item span {
+        font-weight: 600;
+        color: #1f2735;
+    }
+
+    .keyword-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #f1f3f7;
+        color: #33405f;
+        font-size: 13px;
+        margin: 4px;
+        text-decoration: none;
+        transition: background 0.2s ease;
+    }
+
+    .keyword-pill:hover {
+        background: #dce3f0;
+        color: #111;
+        text-decoration: none;
+    }
+
+    .purchase-card .price-display {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #111;
+    }
+
+    .creator-card {
+        border-radius: 16px;
+    }
+
+    .creator-card .avatar-placeholder {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #e0e5f2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #526084;
+        font-size: 1.3rem;
+    }
+
+    .related-grid img {
+        height: 140px;
+        width: 100%;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    @media (max-width: 992px) {
+        .photo-preview-card img {
+            max-height: 55vh;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="photo-preview-card">
+                    <img src="{{ photo.image.url }}" alt="{{ photo.title }}" class="js-protected-image" draggable="false" oncontextmenu="return false;">
+                    <div class="photo-guard" aria-hidden="true"></div>
+                    <div class="watermark" aria-hidden="true">PixFly</div>
+                </div>
+
+                <div class="mt-4 card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+                            <div>
+                                <span class="badge bg-secondary text-uppercase mb-2">ID {{ photo.id }}</span>
+                                <h1 class="h3 mb-2">{{ photo.title }}</h1>
+                                {% if photo.description %}
+                                    <p class="text-muted mb-0">{{ photo.description }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="text-md-end text-muted">
+                                <div><i class="fas fa-eye me-1"></i>{{ photo.views }} просмотров</div>
+                                <div><i class="fas fa-download me-1"></i>{{ photo.downloads }} загрузок</div>
+                            </div>
+                        </div>
+
+                        {% if keywords %}
+                            <div class="mb-4">
+                                <h6 class="text-uppercase text-muted fw-semibold mb-2">Ключевые слова</h6>
+                                <div>
+                                    {% for keyword in keywords %}
+                                        <a class="keyword-pill" href="{% url 'gallery:home' %}?search={{ keyword }}">{{ keyword }}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <div class="photo-meta-list mb-4">
+                            <div class="photo-meta-item">
+                                <small>Разрешение</small>
+                                <span>{{ photo.width }} × {{ photo.height }}</span>
+                            </div>
+                            <div class="photo-meta-item">
+                                <small>Формат</small>
+                                <span>{{ photo.format|default:"JPEG" }}</span>
+                            </div>
+                            <div class="photo-meta-item">
+                                <small>Размер файла</small>
+                                <span>{{ photo.file_size|filesizeformat }}</span>
+                            </div>
+                            <div class="photo-meta-item">
+                                <small>Загружено</small>
+                                <span>{{ photo.uploaded_at|date:"d.m.Y" }}</span>
+                            </div>
+                        </div>
+
+                        <div class="card creator-card border-0 bg-light p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                {% if photo.author.profile.avatar %}
+                                    <img src="{{ photo.author.profile.avatar.url }}" alt="{{ photo.author.username }}" class="rounded-circle" style="width:56px; height:56px; object-fit:cover;">
+                                {% else %}
+                                    <div class="avatar-placeholder">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-semibold">{{ photo.author.username }}</div>
+                                    <small class="text-muted">{{ photo.author.profile.total_photos }} работ в PixFly</small>
+                                </div>
+                                <div class="ms-auto">
+                                    <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:public_profile' photo.author.username %}">Профиль автора</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if related_photos %}
+                    <div class="mt-4">
+                        <h5 class="mb-3">Похожие изображения</h5>
+                        <div class="row g-3 related-grid">
+                            {% for related_photo in related_photos %}
+                                <div class="col-sm-6 col-lg-4">
+                                    <a href="{% url 'gallery:photo_detail' related_photo.id %}">
+                                        <img src="{% if related_photo.thumbnail %}{{ related_photo.thumbnail.url }}{% else %}{{ related_photo.image.url }}{% endif %}" alt="{{ related_photo.title }}">
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0 purchase-card">
+                    <div class="card-body p-4">
+                        {% if can_download %}
+                            <h5 class="mb-3">Доступ открыт</h5>
+                            <p class="text-muted">Вы уже приобрели эту фотографию — можно скачать оригинальный файл.</p>
+                            <a href="{% url 'gallery:download' photo.id %}" class="btn btn-primary w-100 mb-3">
+                                <i class="fas fa-download me-2"></i>Скачать оригинал
+                            </a>
+                            <a href="{% url 'store:orders' %}" class="btn btn-outline-secondary w-100">Перейти к заказам</a>
+                        {% elif license_options %}
+                            <h5 class="mb-3">Выберите лицензию</h5>
+                            <form method="post" action="{% url 'store:add_to_cart' photo.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% url 'store:cart' %}">
+                                <div class="mb-3">
+                                    <label class="form-label" for="licenseSelect">Тип лицензии</label>
+                                    <select class="form-select" id="licenseSelect" name="license">
+                                        {% for option in license_options %}
+                                            <option value="{{ option.license.slug }}" data-price="{{ option.price|floatformat:2 }}">
+                                                {{ option.license.name }} · ×{{ option.license.price_multiplier }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <span class="text-muted">Стоимость</span>
+                                    <span class="price-display">$<span id="licensePrice">{{ license_options.0.price|floatformat:2 }}</span></span>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-shopping-basket me-2"></i>Добавить в корзину
+                                </button>
+                                <a href="{% url 'store:licenses' %}" class="d-block text-center small mt-3">Сравнить условия лицензий</a>
+                            </form>
+                        {% else %}
+                            <h5 class="mb-3">Вы автор PixFly</h5>
+                            <p class="text-muted">Управляйте продажами и загружайте новые работы в кабинете автора.</p>
+                            <a href="{% url 'gallery:user_photos' %}" class="btn btn-outline-primary w-100">Мои фотографии</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card mt-4 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h6 class="text-uppercase text-muted fw-semibold">Что входит</h6>
+                        <ul class="list-unstyled small mb-0">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Использование в digital и печати</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Отсутствие роялти</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Высокое разрешение оригинала</li>
+                            <li class="mb-0"><i class="fas fa-check text-success me-2"></i>Поддержка 24/7</li>
+                        </ul>
+                    </div>
+                </div>
+
+                {% if related_photos %}
+                    <div class="card mt-4 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <h6 class="text-uppercase text-muted fw-semibold">Больше от {{ photo.author.username }}</h6>
+                            <div class="row g-3 related-grid">
+                                {% for related_photo in related_photos|slice:":4" %}
+                                    <div class="col-6">
+                                        <a href="{% url 'gallery:photo_detail' related_photo.id %}"><img src="{% if related_photo.thumbnail %}{{ related_photo.thumbnail.url }}{% else %}{{ related_photo.image.url }}{% endif %}" alt="{{ related_photo.title }}"></a>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var licenseSelect = document.getElementById('licenseSelect');
+    var licensePrice = document.getElementById('licensePrice');
+    if (licenseSelect && licensePrice) {
+        var updatePrice = function() {
+            var selected = licenseSelect.options[licenseSelect.selectedIndex];
+            if (selected && selected.dataset.price) {
+                licensePrice.textContent = selected.dataset.price;
+            }
+        };
+        licenseSelect.addEventListener('change', updatePrice);
+        updatePrice();
+    }
+
+    document.querySelectorAll('.photo-preview-card').forEach(function(card) {
+        card.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+        card.addEventListener('dragstart', function(e) { e.preventDefault(); });
+    });
+
+    document.querySelectorAll('.js-protected-image').forEach(function(img) {
+        img.addEventListener('dragstart', function(e) { e.preventDefault(); });
+        img.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои покупки - PixFly{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Мои покупки</h1>
+        <a href="{% url 'store:cart' %}" class="btn btn-outline-secondary">Открыть корзину</a>
+    </div>
+
+    {% if orders %}
+        <div class="list-group">
+            {% for order in orders %}
+                <a href="{% url 'store:order_detail' order.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold">Заказ №{{ order.id }}</div>
+                        <small class="text-muted">{{ order.created_at|date:"d.m.Y H:i" }} · {{ order.get_status_display }}</small>
+                    </div>
+                    <div class="fw-semibold">${{ order.total_amount }}</div>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+            <h4>У вас пока нет покупок</h4>
+            <p class="text-muted">Соберите коллекцию из лучших изображений PixFly.</p>
+            <a href="{% url 'gallery:home' %}" class="btn btn-primary">Перейти к каталогу</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
