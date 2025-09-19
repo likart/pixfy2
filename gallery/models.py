@@ -92,32 +92,80 @@ class Photo(models.Model):
             super().save(update_fields=['width', 'height', 'file_size', 'format', 'thumbnail', 'title', 'description', 'keywords'])
 
     def create_thumbnail(self):
-        """Создает превью изображения"""
+        """Создает превью изображения используя Google cwebp для максимального сжатия"""
         if not self.image:
             logger.debug("Thumbnail creation skipped: no image file.")
             return
             
         try:
+            import subprocess
+            import tempfile
+            
+            # Создаем временный файл для WebP
+            thumb_name = os.path.basename(self.image.name)
+            thumb_name = os.path.splitext(thumb_name)[0] + '_thumb.webp'
+            
+            with tempfile.NamedTemporaryFile(suffix='.webp', delete=False) as temp_webp:
+                temp_webp_path = temp_webp.name
+            
+            # Используем cwebp для создания качественного WebP превью (~30KB)
+            cwebp_cmd = [
+                'cwebp',
+                '-q', '80',  # Увеличили качество до 80% для лучшего изображения
+                '-resize', '400', '0',  # Увеличили размер до 400px ширина
+                '-m', '6',  # Максимальное время сжатия для лучшего результата
+                '-f', '30',  # Уменьшили фильтр деблокинга для более четкого изображения
+                '-sharpness', '3',  # Добавили резкость
+                self.image.path,
+                '-o', temp_webp_path
+            ]
+            
+            result = subprocess.run(cwebp_cmd, capture_output=True, text=True, timeout=30)
+            
+            if result.returncode == 0 and os.path.exists(temp_webp_path):
+                # Читаем созданный WebP файл и сохраняем в Django
+                with open(temp_webp_path, 'rb') as webp_file:
+                    self.thumbnail.save(thumb_name, ContentFile(webp_file.read()), save=False)
+                
+                logger.debug(f"WebP thumbnail created: {thumb_name}")
+            else:
+                logger.warning(f"cwebp failed for {self.image.path}: {result.stderr}")
+                # Fallback to PIL if cwebp fails
+                self._create_thumbnail_fallback()
+            
+            # Удаляем временный файл
+            try:
+                os.unlink(temp_webp_path)
+            except:
+                pass
+                
+        except Exception:
+            logger.exception("Ошибка создания WebP превью для %s", self.pk or self.image.name)
+            # Fallback to PIL
+            self._create_thumbnail_fallback()
+    
+    def _create_thumbnail_fallback(self):
+        """Fallback метод создания превью через PIL если cwebp не работает"""
+        try:
             with Image.open(self.image.path) as img:
                 img = ImageOps.exif_transpose(img)
-                # Конвертируем в RGB если нужно
                 if img.mode != 'RGB':
                     img = img.convert('RGB')
                 
-                # Создаем превью
-                max_side = 960
+                max_side = 400  # Увеличили размер fallback превью
                 img.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)
                 
-                # Сохраняем превью (путь формируется автоматически через upload_to)
                 thumb_name = os.path.basename(self.image.name)
                 thumb_name = os.path.splitext(thumb_name)[0] + '_thumb.jpg'
 
                 buffer = BytesIO()
-                img.save(buffer, 'JPEG', quality=70, optimize=True, subsampling=1)
+                img.save(buffer, 'JPEG', quality=75, optimize=True)  # Увеличили качество fallback
                 buffer.seek(0)
                 self.thumbnail.save(thumb_name, ContentFile(buffer.read()), save=False)
+                
+                logger.debug(f"Fallback JPEG thumbnail created: {thumb_name}")
         except Exception:
-            logger.exception("Ошибка создания превью для %s", self.pk or self.image.name)
+            logger.exception("Ошибка создания fallback превью для %s", self.pk or self.image.name)
 
     def get_image_metadata(self):
         """Извлекает метаданные изображения"""
